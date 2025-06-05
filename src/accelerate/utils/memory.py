@@ -193,15 +193,10 @@ def get_xpu_available_memory(device_index: int):
         try:
             return torch.xpu.mem_get_info(device_index)[0]
         except Exception:
-            pass
+            raise Exception("calling `torch.xpu.mem_get_info` failed. Please check if torch.version.xpu is newer than 20250001 and torch.xpu.mem_get_info will not fail.")
     elif is_ipex_available():
         ipex_version = version.parse(importlib.metadata.version("intel_extension_for_pytorch"))
         if compare_versions(ipex_version, ">=", "2.5"):
             from intel_extension_for_pytorch.xpu import mem_get_info
 
             return mem_get_info(device_index)[0]
-
-    warnings.warn(
-        "The XPU `mem_get_info` API is available in IPEX version >=2.5 or PyTorch >=2.6. The current returned available memory is incorrect. Please consider upgrading your IPEX or PyTorch version."
-    )
-    return torch.xpu.max_memory_allocated(device_index)
